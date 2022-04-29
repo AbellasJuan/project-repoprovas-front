@@ -1,4 +1,5 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import styled from 'styled-components';
 import {
   Accordion,
   AccordionDetails,
@@ -9,29 +10,50 @@ import {
   Link,
   TextField,
   Typography,
+  ListItem,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
+import { FixedSizeList, ListChildComponentProps } from 'react-window';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import api, {
   Category,
+  Teacher,
   TeacherDisciplines,
   Test,
   TestByTeacher,
 } from "../services/api";
 
 function Instructors() {
+
   const navigate = useNavigate();
   const { token } = useAuth();
-  const [teachersDisciplines, setTeachersDisciplines] = useState<
-    TestByTeacher[]
-  >([]);
+  const [teachersDisciplines, setTeachersDisciplines] = useState<TestByTeacher[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [nameSearch, setNameSearch] = useState<String>('');
+  const [open, setOpen] = useState<Boolean>(false);
+  const [teachersNameAndId, setTeachersNameAndId] = useState<Teacher[]>([]);
+
+  useEffect(() => {
+    function getTeachersNameAndId() {
+      const teacherData = teachersDisciplines.map((teacherDiscipline) => {
+        return {
+          id: teacherDiscipline.teacher.id,
+          name: teacherDiscipline.teacher.name
+        }
+      })
+      setTeachersNameAndId(teacherData);  
+    };
+    getTeachersNameAndId();
+  }, [teachersDisciplines]);
+
+console.log(teachersNameAndId)
 
   useEffect(() => {
     async function loadPage() {
       if (!token) return;
-
       const { data: testsData } = await api.getTestsByTeacher(token);
       setTeachersDisciplines(testsData.tests);
       const { data: categoriesData } = await api.getCategories(token);
@@ -40,12 +62,59 @@ function Instructors() {
     loadPage();
   }, [token]);
 
+  const listaDeProfs = ['Joao', 'Maria', 'Juan', 'Joao', 'Maria', 'Juan', 'Joao', 'Maria', 'Juan', 'Joao', 'Maria', 'Juan']
+
+  function renderRow(props: ListChildComponentProps) {
+  const { index, style } = props;
+
+    return (
+      <ListItem style={style} key={index} component="div" disablePadding>
+        <ListItemButton>
+          <ListItemText primary={listaDeProfs[index]} />
+        </ListItemButton>
+      </ListItem>
+    )
+  };
+
   return (
     <>
+      {open && <CloseSearchBox onClick={() => setOpen(false)}></CloseSearchBox>}
       <TextField
-        sx={{ marginX: "auto", marginBottom: "25px", width: "450px" }}
+        sx={{ marginX: "auto",
+        marginBottom: "25px",
+        width: "450px",
+        position: 'relative',
+        zIndex: '2' 
+        }} 
         label="Pesquise por pessoa instrutora"
+        onChange={(e) => setNameSearch(e.target.value)}
+        value={nameSearch} 
+        onFocus={() => {setOpen(true)}}
       />
+      {open && nameSearch.length >=3 &&
+        <Box
+          sx={{
+              height: "auto",
+              width: '450px',
+              bgcolor: '#ffffff',
+              position:'absolute',
+              top: '220px',
+              left: '50%',
+              transform: 'translate(-50%)',
+              borderRadius: '5px', 
+              zIndex: '9',
+
+            }}>
+          <FixedSizeList
+            height={200}
+            width={450}
+            itemSize={46}
+            itemCount={listaDeProfs.length}
+            overscanCount={5}>
+            {renderRow}
+          </FixedSizeList>
+        </Box>
+      }
       <Divider sx={{ marginBottom: "35px" }} />
       <Box
         sx={{
@@ -95,7 +164,8 @@ function TeachersDisciplinesAccordions({
   categories,
   teachersDisciplines,
 }: TeachersDisciplinesAccordionsProps) {
-  const teachers = getUniqueTeachers(teachersDisciplines);
+  const teachers = getUniqueTeachers(teachersDisciplines); 
+
 
   return (
     <Box sx={{ marginTop: "50px" }}>
@@ -207,5 +277,13 @@ function Tests({ tests, disciplineName }: TestsProps) {
     </>
   );
 }
+
+const CloseSearchBox = styled.div`
+  width: 100vw;
+  position: fixed;
+  background: rgba(0, 0, 0, 0);
+  height: 100vw;
+  z-index: 1;
+`
 
 export default Instructors;

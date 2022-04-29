@@ -36,20 +36,21 @@ function Instructors() {
   const [open, setOpen] = useState<Boolean>(false);
   const [teachersNameAndId, setTeachersNameAndId] = useState<Teacher[]>([]);
 
-  useEffect(() => {
-    function getTeachersNameAndId() {
-      const teacherData = teachersDisciplines.map((teacherDiscipline) => {
-        return {
-          id: teacherDiscipline.teacher.id,
-          name: teacherDiscipline.teacher.name
-        }
-      })
-      setTeachersNameAndId(teacherData);  
-    };
-    getTeachersNameAndId();
-  }, [teachersDisciplines]);
+  // useEffect(() => {
+  //   function getTeachersNameAndId() {
+  //     const teacherData = teachersDisciplines.map((teacherDiscipline) => {
+  //       console.log(teacherDiscipline)
+  //       return {
+  //         id: teacherDiscipline.teacher.id,
+  //         name: teacherDiscipline.teacher.name
+  //       }
+  //     })
+  //     setTeachersNameAndId(teacherData);  
+  //   };
+  //   getTeachersNameAndId();
+  // }, [teachersDisciplines]);
 
-console.log(teachersNameAndId)
+  // console.log(teachersNameAndId)
 
   useEffect(() => {
     async function loadPage() {
@@ -62,18 +63,38 @@ console.log(teachersNameAndId)
     loadPage();
   }, [token]);
 
-  const listaDeProfs = ['Joao', 'Maria', 'Juan', 'Joao', 'Maria', 'Juan', 'Joao', 'Maria', 'Juan', 'Joao', 'Maria', 'Juan']
+  
+  async function searchTestByTeacherId(id: number){
+    if (!token) return;
+    const { data: testsData } = await api.getTestsByTeacherId(token, id);
+    setTeachersDisciplines(testsData.tests);
+    const { data: categoriesData } = await api.getCategories(token);
+    setCategories(categoriesData.categories);
+    setOpen(false)
+  };
+
+  useEffect(() => {
+    async function searchTeachers(){
+      if (!token) return;
+      const { data } = await api.getAllTeachers(token);
+      setTeachersNameAndId(data);
+    };
+    searchTeachers();
+  }, [token]);  
 
   function renderRow(props: ListChildComponentProps) {
   const { index, style } = props;
-
     return (
       <ListItem style={style} key={index} component="div" disablePadding>
         <ListItemButton>
-          <ListItemText primary={listaDeProfs[index]} />
+          <ListItemText primary={teachersNameAndId[index].name} onClick={() => searchTestByTeacherId(teachersNameAndId[index].id)}/>
         </ListItemButton>
       </ListItem>
     )
+  };
+
+  function showNames(){
+    console.log(nameSearch);
   };
 
   return (
@@ -109,7 +130,7 @@ console.log(teachersNameAndId)
             height={200}
             width={450}
             itemSize={46}
-            itemCount={listaDeProfs.length}
+            itemCount={teachersNameAndId.length}
             overscanCount={5}>
             {renderRow}
           </FixedSizeList>
@@ -165,7 +186,6 @@ function TeachersDisciplinesAccordions({
   teachersDisciplines,
 }: TeachersDisciplinesAccordionsProps) {
   const teachers = getUniqueTeachers(teachersDisciplines); 
-
 
   return (
     <Box sx={{ marginTop: "50px" }}>

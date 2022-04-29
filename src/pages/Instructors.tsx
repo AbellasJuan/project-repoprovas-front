@@ -71,7 +71,7 @@ function Instructors() {
     return (
       <ListItem style={style} key={index} component="div" disablePadding>
         <ListItemButton>
-          <ListItemText primary={teachersShowed.length > 0 ? teachersShowed[index]?.name : teachersNameAndId[index].name} onClick={() => searchTestByTeacherId(teachersNameAndId[index].id)}/>
+          <ListItemText primary={teachersShowed.length > 0 ? teachersShowed[index]?.name : teachersNameAndId[index].name} onClick={() => searchTestByTeacherId(teachersShowed.length > 0 ? teachersShowed[index]?.id : teachersNameAndId[index].id)}/>
         </ListItemButton>
       </ListItem>
     )
@@ -79,11 +79,11 @@ function Instructors() {
 
   function onChangeFunction(target: string){    
     const filteredNames = teachersNameAndId.filter((teacher) => {
-      if(target.slice(0,(target.length)) === teacher.name.slice(0,(target.length)) && target.length > 0) return true
+      if(target.toLowerCase().slice(0,(target.length)) === teacher.name.toLowerCase().slice(0,(target.length)) && target.length > 0) return true;
     });
     
-    setNameSearch(target)
-    setTeachersShowed(filteredNames)
+    setNameSearch(target);
+    setTeachersShowed(filteredNames);
 
     if(filteredNames.length > 0){setTeachersShowed(filteredNames)}
   };

@@ -35,22 +35,7 @@ function Instructors() {
   const [nameSearch, setNameSearch] = useState<String>('');
   const [open, setOpen] = useState<Boolean>(false);
   const [teachersNameAndId, setTeachersNameAndId] = useState<Teacher[]>([]);
-
-  // useEffect(() => {
-  //   function getTeachersNameAndId() {
-  //     const teacherData = teachersDisciplines.map((teacherDiscipline) => {
-  //       console.log(teacherDiscipline)
-  //       return {
-  //         id: teacherDiscipline.teacher.id,
-  //         name: teacherDiscipline.teacher.name
-  //       }
-  //     })
-  //     setTeachersNameAndId(teacherData);  
-  //   };
-  //   getTeachersNameAndId();
-  // }, [teachersDisciplines]);
-
-  // console.log(teachersNameAndId)
+  const [teachersShowed, setTeachersShowed] = useState<Teacher[]>([]);
 
   useEffect(() => {
     async function loadPage() {
@@ -62,7 +47,6 @@ function Instructors() {
     }
     loadPage();
   }, [token]);
-
   
   async function searchTestByTeacherId(id: number){
     if (!token) return;
@@ -87,14 +71,21 @@ function Instructors() {
     return (
       <ListItem style={style} key={index} component="div" disablePadding>
         <ListItemButton>
-          <ListItemText primary={teachersNameAndId[index].name} onClick={() => searchTestByTeacherId(teachersNameAndId[index].id)}/>
+          <ListItemText primary={teachersShowed.length > 0 ? teachersShowed[index]?.name : teachersNameAndId[index].name} onClick={() => searchTestByTeacherId(teachersNameAndId[index].id)}/>
         </ListItemButton>
       </ListItem>
     )
   };
 
-  function showNames(){
-    console.log(nameSearch);
+  function onChangeFunction(target: string){    
+    const filteredNames = teachersNameAndId.filter((teacher) => {
+      if(target.slice(0,(target.length)) === teacher.name.slice(0,(target.length)) && target.length > 0) return true
+    });
+    
+    setNameSearch(target)
+    setTeachersShowed(filteredNames)
+
+    if(filteredNames.length > 0){setTeachersShowed(filteredNames)}
   };
 
   return (
@@ -108,11 +99,11 @@ function Instructors() {
         zIndex: '2' 
         }} 
         label="Pesquise por pessoa instrutora"
-        onChange={(e) => setNameSearch(e.target.value)}
+        onChange={(e) => onChangeFunction(e.target.value)}
         value={nameSearch} 
         onFocus={() => {setOpen(true)}}
       />
-      {open && nameSearch.length >=3 &&
+      {open &&
         <Box
           sx={{
               height: "auto",
@@ -127,7 +118,7 @@ function Instructors() {
 
             }}>
           <FixedSizeList
-            height={200}
+            height={135}
             width={450}
             itemSize={46}
             itemCount={teachersNameAndId.length}
